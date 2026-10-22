@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Radar semanal: informe de marketing digital</title>
+  <meta name="description" content="Agente de IA que convierte las métricas semanales de redes en un informe de leads, ventas y acciones priorizadas.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Public+Sans:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="barra">
+    <h1>Radar semanal</h1>
+    <p>Tus canales frente a tus leads y ventas, cada semana.</p>
+  </header>
+
+  <main class="lienzo">
+    <aside class="panel" aria-label="Preparar el informe">
+      <ol class="pasos">
+        <li>
+          <label for="clave">Clave de la API de Gemini</label>
+          <input id="clave" type="password" autocomplete="off" spellcheck="false" placeholder="Pega tu clave aquí">
+          <label class="casilla"><input id="recordar" type="checkbox"> Recordarla mientras esta pestaña esté abierta</label>
+          <p class="ayuda">Créala gratis en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Solo se envía a Google.</p>
+          <details class="avanzado">
+            <summary>Modelo</summary>
+            <input id="modelo" type="text" spellcheck="false" aria-label="Modelo de Gemini">
+          </details>
+        </li>
+        <li>
+          <label for="archivo">Datos de la semana</label>
+          <input id="archivo" type="file" accept=".xlsx,.xls,.csv">
+          <button id="usar-ejemplo" type="button" class="secundario">Probar con datos de ejemplo</button>
+          <div id="resumen-datos" class="resumen-datos" aria-live="polite"></div>
+        </li>
+        <li>
+          <label for="contexto-semana">Contexto de la semana</label>
+          <textarea id="contexto-semana" rows="4" placeholder="Lanzamientos, cambios de pauta, festivos, temporada…"></textarea>
+        </li>
+      </ol>
+      <button id="generar" type="button" class="principal" disabled>Generar informe</button>
+      <p id="mensaje" class="mensaje" role="alert" hidden></p>
+    </aside>
+
+    <section id="informe" class="lienzo-informe vacio" aria-live="polite">
+      <div class="estado-vacio">
+        <h2>Carga el archivo de la semana</h2>
+        <p>Verás al instante el embudo, los leads por canal y las alertas. Con tu clave de Gemini, el agente añade hallazgos, hipótesis y una tabla de acciones con prioridad.</p>
+      </div>
+    </section>
+  </main>
+
+  <p id="aviso" class="aviso" role="status" hidden></p>
+</body>
+</html>
