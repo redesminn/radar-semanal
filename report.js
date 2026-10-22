@@ -34,6 +34,8 @@ function embudoHTML(embudo) {
 }
 
 function tablaCanales(calc) {
+  const L = calc.etiquetas?.leads || 'Leads';
+  const V = calc.etiquetas?.ventas || 'Venta';
   const filas = calc.por_canal.map((c) => {
     const a = c.actual || {};
     return `<tr>
@@ -42,7 +44,7 @@ function tablaCanales(calc) {
       <td>${pct(a.tasa_interaccion, 2)}</td>
       <td>${num(a.clics)}</td>
       <td><strong>${num(a.leads)}</strong></td>
-      <td>${num(a.leads_por_mil, 2)}</td>
+      <td>${num(a.leads_por_mil, a.leads_por_mil != null && a.leads_por_mil < 0.1 ? 3 : 2)}</td>
       <td>${pct(a.conv_lead_venta)}</td>
       <td>${delta(c.var_anterior?.leads)}</td>
       <td>${delta(c.var_promedio4?.leads)}</td>
@@ -52,9 +54,9 @@ function tablaCanales(calc) {
   return `<section class="bloque">
     <h3>Canales</h3>
     <div class="desplazable"><table class="tabla">
-      <thead><tr><th scope="col">Canal</th><th scope="col">Alcance</th><th scope="col">Interacción</th><th scope="col">Clics</th><th scope="col">Leads</th><th scope="col">Leads por 1.000</th><th scope="col">Lead a venta</th><th scope="col">Leads vs. semana anterior</th><th scope="col">Leads vs. promedio 4 semanas</th></tr></thead>
+      <thead><tr><th scope="col">Canal</th><th scope="col">Alcance</th><th scope="col">Interacción</th><th scope="col">Clics</th><th scope="col">${esc(L)}</th><th scope="col">${esc(L)} por 1.000</th><th scope="col">${esc(L)} a ${esc(V.toLowerCase())}</th><th scope="col">${esc(L)} vs. semana anterior</th><th scope="col">${esc(L)} vs. promedio 4 semanas</th></tr></thead>
       <tbody>${filas}</tbody>
-      <tfoot><tr><th scope="row">Total</th><td>${num(t.alcance)}</td><td>${pct(t.tasa_interaccion, 2)}</td><td>${num(t.clics)}</td><td><strong>${num(t.leads)}</strong></td><td>${num(t.leads_por_mil, 2)}</td><td>${pct(t.conv_lead_venta)}</td><td>${delta(calc.total.var_anterior?.leads)}</td><td>${delta(calc.total.var_promedio4?.leads)}</td></tr></tfoot>
+      <tfoot><tr><th scope="row">Total</th><td>${num(t.alcance)}</td><td>${pct(t.tasa_interaccion, 2)}</td><td>${num(t.clics)}</td><td><strong>${num(t.leads)}</strong></td><td>${num(t.leads_por_mil, t.leads_por_mil != null && t.leads_por_mil < 0.1 ? 3 : 2)}</td><td>${pct(t.conv_lead_venta)}</td><td>${delta(calc.total.var_anterior?.leads)}</td><td>${delta(calc.total.var_promedio4?.leads)}</td></tr></tfoot>
     </table></div>
   </section>`;
 }
@@ -95,7 +97,7 @@ function tendenciaHTML(calc) {
   const cab = semanas.map((s) => `<th scope="col">${esc(fecha(s, true))}</th>`).join('');
   const filas = canales.map((c) => `<tr><th scope="row">${esc(c.canal)}</th>${c.leads.map((l) => `<td>${num(l)}</td>`).join('')}</tr>`).join('');
   return `<section class="bloque">
-    <h3>Tendencia de leads</h3>
+    <h3>Tendencia: ${esc((calc.etiquetas?.leads || 'leads').toLowerCase())}</h3>
     <div class="desplazable"><table class="tabla compacta">
       <thead><tr><th scope="col">Canal</th>${cab}</tr></thead>
       <tbody>${filas}</tbody>
@@ -133,7 +135,7 @@ export function renderInforme(calc, inf = null, modelo = '') {
   const faltantes = [...new Set([...(calc.datos_faltantes || []), ...(inf?.datos_faltantes || [])])];
   const titular = inf
     ? `<h2 class="titular">${esc(inf.titular)}</h2><p class="resumen">${esc(inf.resumen)}</p>`
-    : `<h2 class="titular">${num(calc.total.actual?.leads)} leads y ${num(calc.total.actual?.ventas)} ventas esta semana</h2>`;
+    : `<h2 class="titular">${num(calc.total.actual?.leads)} ${esc((calc.etiquetas?.leads || 'leads').toLowerCase())} y ${num(calc.total.actual?.ventas)} ${esc((calc.etiquetas?.ventas || 'ventas').toLowerCase())} esta semana</h2>`;
   return `<article class="informe">
     <header class="inf-cabecera">
       <div>
@@ -154,7 +156,8 @@ export function renderInforme(calc, inf = null, modelo = '') {
     ${alertasHTML(calc, inf)}
     ${tendenciaHTML(calc)}
     ${faltantes.length ? `<section class="bloque"><h3>Datos que faltan</h3><ul class="faltantes">${faltantes.map((f) => `<li>${esc(f)}</li>`).join('')}</ul></section>` : ''}
-    <footer class="inf-pie">Cifras calculadas por la app a partir de tu archivo.${inf ? ` Interpretación generada con ${esc(modelo)}: revísala antes de decidir.` : ''}</footer>
+    ${calc.definiciones ? `<details class="definiciones"><summary>Cómo se calcularon las cifras</summary><dl>${Object.entries(calc.definiciones).map(([k, v]) => `<dt>${esc(k.replace(/_/g, ' '))}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>` : ''}
+    <footer class="inf-pie">Cifras calculadas por la app a partir de tus archivos.${inf ? ` Interpretación generada con ${esc(modelo)}: revísala antes de decidir.` : ''}</footer>
   </article>`;
 }
 

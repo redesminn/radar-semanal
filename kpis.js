@@ -144,7 +144,7 @@ const EXPLICACION_FALTANTES = {
   clics: 'Clics: necesarios para la tasa de clics.',
 };
 
-export function calcular(filas, columnasAusentes = []) {
+export function calcular(filas, columnasAusentes = [], extra = {}) {
   const u = CONFIG.umbrales;
   const semanas = [...new Set(filas.map((f) => f.semana))].sort();
   const canales = [...new Set(filas.map((f) => f.canal))];
@@ -176,7 +176,7 @@ export function calcular(filas, columnasAusentes = []) {
   ];
   const embudo = etapas
     .filter(([, k]) => total.actual?.[k] != null)
-    .map(([nombre, k]) => ({ etapa: nombre, valor: total.actual[k], var_promedio4: total.var_promedio4?.[k] ?? null }));
+    .map(([nombre, k]) => ({ etapa: extra.etiquetas?.[k] || nombre, valor: total.actual[k], var_promedio4: total.var_promedio4?.[k] ?? null }));
 
   const ultimas = semanas.slice(-6);
   const tendencia = {
@@ -208,6 +208,8 @@ export function calcular(filas, columnasAusentes = []) {
     alertas: alertas([total, ...canalesCalc], u, usaPromedio),
     notas_semana: filas.filter((f) => f.semana === actual && f.notas).map((f) => `${f.canal} (${f.tipo}): ${f.notas}`),
     datos_faltantes: faltantes,
+    definiciones: extra.definiciones || null,
+    etiquetas: extra.etiquetas || {},
   };
 }
 

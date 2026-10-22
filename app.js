@@ -1,6 +1,7 @@
 // Orquesta la app: clave, datos, cálculo, llamada a Gemini y exportaciones.
 import { CONFIG } from './config.js';
 import { leerBuffer } from './data.js';
+import { tipoDeLibro, construirTablaMinn } from './minn.js';
 import { calcular, payloadParaIA } from './kpis.js';
 import { generarInforme } from './gemini.js';
 import { renderInforme, tablasExcel, csvAcciones } from './report.js';
@@ -55,23 +56,42 @@ async function cargarInstrucciones() {
   }
 }
 
-function procesar(buffer, nombre) {
+// Acepta la plantilla del agente (un archivo) o los archivos propios de Minn (métricas + llamadas).
+function leerArchivos(lista) {
+  if (typeof XLSX === 'undefined') throw new Error('No se pudo cargar el lector de Excel. Revisa la conexión y recarga la página.');
+  const libros = lista.map(({ buffer, nombre }) => {
+    const esTexto = /\.(csv|tsv|txt)$/i.test(nombre);
+    const libro = esTexto ? null : XLSX.read(buffer, { type: 'array' });
+    const anio = Number((nombre.match(/20\d\d/) || [])[0]) || new Date().getFullYear();
+    return { nombre, buffer, libro, anio, tipo: libro ? tipoDeLibro(libro) : 'generico' };
+  });
+  const propios = libros.filter((l) => l.tipo !== 'generico');
+  if (propios.length) {
+    if (!propios.some((l) => l.tipo === 'metricas' || l.tipo === 'llamadas')) {
+      throw new Error('Ese archivo no trae métricas por canal. Sube también MÉTRICAS_RRSS y Llamadas agendadas y ventas.');
+    }
+    return construirTablaMinn(propios);
+  }
+  if (libros.length > 1) throw new Error('Sube un solo archivo con el formato de la plantilla, o tus archivos de métricas y de llamadas juntos.');
+  return leerBuffer(libros[0].buffer, libros[0].nombre);
+}
+
+function procesar(lista) {
   mostrarMensaje('');
   try {
-    const { filas, columnasAusentes, advertencias } = leerBuffer(buffer, nombre);
-    estado.calc = calcular(filas, columnasAusentes);
+    const { filas, columnasAusentes, advertencias, definiciones, etiquetas } = leerArchivos(lista);
+    estado.calc = calcular(filas, columnasAusentes, { definiciones, etiquetas });
     estado.informe = null;
-    const s = estado.calc.tendencia.semanas;
-    const canales = estado.calc.por_canal.length;
+    const s = [...new Set(filas.map((f) => f.semana))].sort();
     ui.resumen.innerHTML = '';
     const p = document.createElement('p');
-    p.textContent = `${nombre}: ${filas.length} filas, ${estado.calc.n_semanas} semanas (${fecha(s[0], true)} a ${fecha(s.at(-1), true)}), ${canales} canales.`;
+    p.textContent = `${lista.map((a) => a.nombre).join(', ')}: ${estado.calc.n_semanas} semanas (${fecha(s[0], true)} a ${fecha(s.at(-1), true)}), ${estado.calc.por_canal.length} canales.`;
     ui.resumen.append(p);
-    advertencias.slice(0, 5).forEach((a) => {
-      const li = document.createElement('p');
-      li.className = 'advertencia';
-      li.textContent = a;
-      ui.resumen.append(li);
+    advertencias.slice(0, 6).forEach((a) => {
+      const linea = document.createElement('p');
+      linea.className = 'advertencia';
+      linea.textContent = a;
+      ui.resumen.append(linea);
     });
     pintar();
   } catch (e) {
@@ -83,15 +103,16 @@ function procesar(buffer, nombre) {
 }
 
 ui.archivo.addEventListener('change', async () => {
-  const f = ui.archivo.files?.[0];
-  if (f) procesar(await f.arrayBuffer(), f.name);
+  const archivos = [...(ui.archivo.files || [])];
+  if (!archivos.length) return;
+  procesar(await Promise.all(archivos.map(async (f) => ({ buffer: await f.arrayBuffer(), nombre: f.name }))));
 });
 
 ui.ejemplo.addEventListener('click', async () => {
   try {
     const res = await fetch('ejemplo_semanas.csv');
     if (!res.ok) throw new Error();
-    procesar(await res.arrayBuffer(), 'ejemplo_semanas.csv');
+    procesar([{ buffer: await res.arrayBuffer(), nombre: 'ejemplo_semanas.csv' }]);
   } catch {
     mostrarMensaje('No se pudo abrir el archivo de ejemplo. Abre la app desde GitHub Pages o con un servidor local.');
   }

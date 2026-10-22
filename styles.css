@@ -152,6 +152,11 @@ button.secundario { justify-self: start; font-size: .9rem; }
 .pendiente { margin-top: 2rem; padding: 1rem 1.2rem; border-radius: 8px; background: var(--acento-suave); }
 .pendiente p { margin: 0; }
 
+.definiciones { margin-top: 2rem; font-size: .88rem; }
+.definiciones summary { cursor: pointer; font-weight: 600; }
+.definiciones dl { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: .35rem 1rem; margin: .8rem 0 0; }
+.definiciones dt { color: var(--tenue); text-transform: capitalize; }
+.definiciones dd { margin: 0; max-width: 70ch; }
 .inf-pie { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--linea); font-size: .82rem; color: var(--tenue); }
 
 .aviso { position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%); margin: 0; padding: .65rem 1rem; border-radius: 6px; background: var(--tinta); color: var(--superficie); font-size: .9rem; }
