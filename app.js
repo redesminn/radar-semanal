@@ -51,7 +51,7 @@ async function cargarInstrucciones() {
     estado.instrucciones = partes.join('\n\n---\n\n');
     return estado.instrucciones;
   } catch (e) {
-    throw new Error(`No se pudieron leer los archivos de la carpeta contexto (${e.message}). Abre la app desde GitHub Pages o con un servidor local; al abrir index.html con doble clic el navegador bloquea esa lectura.`);
+    throw new Error(`No se pudieron leer los archivos de instrucciones (.md) (${e.message}). Abre la app desde GitHub Pages o con un servidor local; al abrir index.html con doble clic el navegador bloquea esa lectura.`);
   }
 }
 
@@ -89,7 +89,7 @@ ui.archivo.addEventListener('change', async () => {
 
 ui.ejemplo.addEventListener('click', async () => {
   try {
-    const res = await fetch('datos/ejemplo_semanas.csv');
+    const res = await fetch('ejemplo_semanas.csv');
     if (!res.ok) throw new Error();
     procesar(await res.arrayBuffer(), 'ejemplo_semanas.csv');
   } catch {

@@ -6,12 +6,12 @@ export const CONFIG = {
 
   // Archivos que forman las instrucciones del agente (se cargan en este orden).
   archivosContexto: [
-    'contexto/01_rol.md',
-    'contexto/02_marketing_estrategico.md',
-    'contexto/03_kpis.md',
-    'contexto/04_reglas.md',
-    'contexto/05_formato_salida.md',
-    'contexto/06_diccionario_datos.md',
+    '01_rol.md',
+    '02_marketing_estrategico.md',
+    '03_kpis.md',
+    '04_reglas.md',
+    '05_formato_salida.md',
+    '06_diccionario_datos.md',
   ],
 
   canalesEsperados: ['Instagram', 'Stories', 'TikTok', 'YouTube', 'LinkedIn'],
